@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+		<!-- 配置c3p0数据源 -->
+		<bean id = "dataSource" class = "com.mchange.v2.c3p0.ComboPooledDataSource">
+			<property name="driverClass" value = "oracle.jdbc.driver.OracleDriver" />
+			<property name="jdbcUrl" value = "jdbc:oracle:thin:@localhost:1521:orcl" />
+			<property name="user" value = "scott"/>
+			<property name="password" value = "123"/>
+		</bean>
+	
+		<!-- SqlSessionFactory -->
+		<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+			<property name="dataSource" ref="dataSource"/>
+			<property name="configLocation" value="classpath:myBatis-config.xml" />
+			<!--配置扫描式加载SQL映射文件,记得去掉mybatis-config配置-->
+			<property name="mapperLocations" value="classpath:com/dao/*.xml"/>
+		
+	
+		</bean>
+		
+	 	<!-- 配置事物管理器 -->
+		<bean id = "transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+			<property name="dataSource" ref="dataSource"/>
+		</bean>
+		
+		<!-- 事物通知 -->
+		<tx:advice id="advice" transaction-manager="transactionManager">
+			<tx:attributes>
+				<tx:method name="Select*" propagation="REQUIRED" rollback-for="Exception"/>			
+				<tx:method name="Find*" propagation="REQUIRED" rollback-for="Exception"/>			
+				<tx:method name="Add*" propagation="REQUIRED" rollback-for="Exception"/>			
+				<tx:method name="Update*" propagation="REQUIRED" rollback-for="Exception"/>			
+			</tx:attributes>
+		</tx:advice>
+		
+		<!-- 切入点,把事物界定在service层 -->
+		<aop:config>
+			<aop:advisor advice-ref="advice" pointcut="execution(* service.impl.*.*(..))"/>
+		</aop:config> 
+	
+		
+		<!-- 开启扫描 -->
+		<context:component-scan base-package="com.*">
+			<context:exclude-filter type="annotation"
+				expression="org.springframework.stereotype.Controller" />
+		</context:component-scan>
+		
+	 <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+		<property name="basePackage" value="com.dao" /> 
+	</bean>
+	
+	
+	<!-- jedis配置 -->
+	<bean id = "poolConfig" class = "redis.clients.jedis.JedisPoolConfig">
+			<property name="maxIdle" value = "300"></property>
+			<property name="minIdle" value="100"></property>
+			<property name="maxTotal" value="500"></property>
+			<property name="maxWaitMillis" value = "1000"></property>
+	</bean>
+	
+	
+	<!-- redis服务器中心 -->
+	<bean id = "connectionFactory" class = "org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="poolConfig" ref="poolConfig" />
+		<property name="port" value="6379" />
+		<property name="hostName" value="localhost" /> 
+		<property name="password" value="" />
+		<property name="timeout" value="100000" />
+	</bean>
+	
+	<!-- redisTemplate -->
+	<bean id = "redisTemplate" class = "org.springframework.data.redis.core.RedisTemplate">
+			<property name="connectionFactory" ref="connectionFactory" />
+			<property name="keySerializer">
+				<bean class = "org.springframework.data.redis.serializer.StringRedisSerializer"></bean>
+			</property>
+			<property name="valueSerializer">
+				<bean class = "org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"></bean>
+			</property>
+			
+	</bean>
+</beans>
