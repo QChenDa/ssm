@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace = "dao.EmpDao">
+	 <resultMap type="entity.Emp" id="empMap">
+	 	<id property="EMPNO" column="EMPNO"></id>
+	 	<result property = "HIREDATE" column = "HIREDATE"></result>
+	 	<result property = "SAL" column = "SAL"></result>
+	 	<result property = "COMM" column = "COMM"></result>
+	 	<result property = "DEPTNO" column = "DEPTNO"></result>
+	 	<result property = "MGR" column = "MGR"></result>
+	 </resultMap>
+	 <!--sql语句  -->
+	 
+	 
+	 <!--普通的sql语句直接在sql语句里加上#{参数}就行,无论CURD都是 ;如果需要多个参数的时候使用parameterMap -->
+	<select id="Find" parameterType="int" resultType="entity/Emp">
+	select * from EMP where EMPNO = #{EMPNO}
+	</select>
+	
+	<!--动态sql  -->
+	
+	
+	<select id="FindByCondition"  parameterType="Map" resultType="entity/Emp">
+		select * from EMP 
+		<where>
+			<if test="EMPNO != null">
+			 and EMPNO = #{EMPNO}
+			</if>
+			<if test="DEPTNO != null">
+			and DEPTNO = #{DEPTNO}
+			</if>
+		</where>
+	</select>
+	
+	
+	<!-- insert的动态部分 -->
+	<sql id="key" >
+		<trim suffixOverrides=",">
+		<!-- key的填写和value是不同的;【参数；】 -->
+			<if test="EMPNO != null">
+				EMPNO,
+			</if>
+			<if test="HIREDATE != null">
+				HIREDATE,
+			</if>
+			<if test="SAL != null">
+				SAL,
+			</if>
+			<if test="COMM != null">
+				COMM,
+			</if>
+			<if test="DEPTNO != null">
+				DEPTNO,
+			</if>
+		
+			<if test="MGR != null">
+				MGR,
+			</if>
+		</trim>
+	</sql>
+	
+	<sql id="value">
+		<trim suffixOverrides=",">
+		<!-- value的填写和key是不同的;【${参数}；】 -->
+		 <if test="EMPNO != null">
+				${EMPNO},
+			</if>
+			<if test="HIREDATE != null">
+				${HIREDATE},
+			</if>
+			<if test="SAL != null">
+				${SAL},
+			</if>
+			<if test="COMM != null">
+				${COMM},
+			</if>
+			<if test="DEPTNO != null">
+				${DEPTNO},
+			</if>
+		
+			<if test="MGR != null">
+				$(MGR),
+			</if>
+		</trim>
+	</sql>
+	
+	<insert id="add" parameterType="entity/Emp">
+		insert into EMP (<include refid="key"/>) values	(<include refid="value"/>)
+	</insert>
+	
+	
+	<!--item代表迭代的参数  -->
+	<delete id="deleteByCondition">
+		delete  from EMP where id in
+			<foreach collection="list" open="(" close=")" 
+			separator="," item="ids">
+			<!-- 和前面的不同！！！！ -->
+			${ids}
+			</foreach>
+	</delete>
+	
+	
+	<update id="update" parameterType="entity/Emp">
+		update EMP 
+		<set>
+			<if test="DEPTNO != null">
+			 DEPTNO = #{DEPTNO}
+			</if>
+			<if test="SAL != null">
+			SAL = #{SAL}
+			</if>
+		</set>	
+	</update>
+</mapper>
+
+
+
+
+
+
+
+

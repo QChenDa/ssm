@@ -21,7 +21,7 @@ public class RedisServiceImpl implements RedisService {
 	@Override
 	public List<Dept> FindAll() {
 		// TODO Auto-generated method stub
-		if(redisTemplate.opsForList().size("dept") != 0)
+		if(redisTemplate.opsForList().size("dept") == 0)
 		{
 			List<Dept> deptlist = RedisDao.FindAll();
 			for (Dept dept : deptlist) {				
@@ -31,8 +31,8 @@ public class RedisServiceImpl implements RedisService {
 		}
 		else
 		{
-			System.out.println("-----------------------ÆôÓÃÁË»º´æ---------------");
-//			0,-1´ú±íÁËÈ¡Õû¸ö¼¯ºÏ
+			System.out.println("-----------------------ï¿½ï¿½ï¿½ï¿½ï¿½Ë»ï¿½ï¿½ï¿½---------------");
+//			0,-1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			return (List<Dept>) redisTemplate.opsForList().range("dept", 0, -1);
 		}
 	}
